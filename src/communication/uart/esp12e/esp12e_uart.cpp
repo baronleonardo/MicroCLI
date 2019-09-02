@@ -14,33 +14,23 @@ extern "C" bool Comm_isConnected() {
     return true;
 }
 
-extern "C" uint32_t Comm_read(char* data, 
-                              uint32_t len,
-                              char delim) {
-    uint32_t cur_time;
-    uint8_t data_recv_len;
-    uint32_t counter;
+extern "C" char Comm_readChar() {
+    static uint32_t cur_time;
+    static uint8_t data_recv_len;
 
-    for( counter = 0; counter < len - 1; ++counter ) {
-        data_recv_len = 0;
-        cur_time = Clock_now();
-        // check if we received data between time range
-        while( ((data_recv_len = Serial.available()) > 0) && 
-               ((Clock_now() - cur_time) > MAX_READ_DELAY)
-             );
+    data_recv_len = 0;
+    cur_time = Clock_now();
+    // check if we received data between time range
+    while( ((data_recv_len = Serial.available()) > 0) && 
+           ((Clock_now() - cur_time) > MAX_READ_DELAY)
+         );
 
-        // timeout
-        if( data_recv_len == 0 ) break;
-
-        data[counter] = Serial.read();
-        if( data[counter] == delim ) break;
-    }
-
-    data[counter] = '\0';
-    return counter;
+    // timeout
+    if( data_recv_len == 0 ) return (char)0;
+    else return Serial.read();
 }
 
-extern "C" void Comm_write(char* data, uint32_t len) {
+extern "C" void Comm_write(const char* data, uint32_t len) {
     Serial.write(data, len);
 }
 
