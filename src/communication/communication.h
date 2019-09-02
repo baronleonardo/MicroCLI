@@ -1,7 +1,14 @@
 #ifndef COMMUNICATION_H
 #define COMMUNICATION_H
 
-#include <stdint.h>
+
+#ifdef __cplusplus
+  #include <cstdint>
+  extern "C" {
+#else
+  #include <stdint.h>
+  #include <stdbool.h>
+#endif
 
 void Comm_connect();
 bool Comm_isConnected();
@@ -11,5 +18,10 @@ uint32_t Comm_read(char* data,
                    uint32_t len,
                    char delim);
 void Comm_write(char* data, uint32_t len);
+
+
+#ifdef __cplusplus
+  }
+#endif
 
 #endif // COMMUNICATION_H
