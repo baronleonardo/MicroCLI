@@ -14,7 +14,7 @@ void Comm_connect();
 bool Comm_isConnected();
 char Comm_readChar();
 void Comm_write(const char* data, uint32_t len);
-
+void Comm_writeChar(char data);
 
 #ifdef __cplusplus
   }

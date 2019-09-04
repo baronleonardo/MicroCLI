@@ -34,4 +34,8 @@ extern "C" void Comm_write(const char* data, uint32_t len) {
     Serial.write(data, len);
 }
 
+extern "C" void Comm_writeChar(char data) {
+    Serial.write(data);
+}
+
 #endif // uart && esp12e
