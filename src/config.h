@@ -9,6 +9,10 @@
 // available options: uart
 #define uart
 #define UART_BAUDRATE 115200
-#define MAX_READ_DELAY 500          // in microseconds
+#define MAX_READ_DELAY 200          // in microseconds
+
+/******************************* MicroCMD *******************************/
+#define CMD_INPUT_MAX_LEN   101
+#define CMD_DELIMITER       '\r'
 
 #endif // CONFIG_H
