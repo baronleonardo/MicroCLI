@@ -14,5 +14,8 @@
 /******************************* MicroCMD *******************************/
 #define CMD_INPUT_MAX_LEN   101
 #define CMD_DELIMITER       '\r'
+#define CMD_NAME_LEN        11
+#define CMD_ARGS_LEN        5
+#define CMD_REG_LEN         11
 
 #endif // CONFIG_H

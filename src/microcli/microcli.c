@@ -2,6 +2,7 @@
 #include "../mcu/mcu.h"
 #include "../communication/communication.h"
 #include "../config.h"
+#include "command.h"
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -61,9 +62,10 @@ void Microcli_mainLoop() {
                     case BACKSPACE:
                         __Microcli_onBackspaceKeyReceived();
                         break;
-                }
 
-                current_input_length++;
+                    default:
+                        current_input_length++;
+                }
             }
         }
 
@@ -86,6 +88,9 @@ void __Microcli_onOverflowInputLength() {
 
 void __Microcli_onDelimiterKeyReceived() {
     cmd_raw_input[current_input_length] = '\0';
+
+    Command_parse(cmd_raw_input);
+
     __Microcli_sendNewCmdIndicator();
     current_input_length = 0;
 }
