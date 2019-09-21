@@ -6,22 +6,23 @@
 #include <string.h>
 #include "../communication/communication.h"
 
+/****************** Variables and functions declarations ******************/
 struct Command {
     char name[CMD_NAME_LEN];
     uint8_t name_len;
-    bool use_data;
+    bool using_reg_data;
     uint8_t args_len;
     union {
-        char options[CMD_ARGS_LEN];
-        char data[CMD_REG_LEN];
+        char args[CMD_ARGS_COUNT];
+        char reg_data[CMD_REG_LEN];
     };
 } currentCmd;
 
 typedef enum ArgsType {
     ARGSTYPE_CMDNAME,
     ARGSTYPE_REGISTERS,
-    ARGSTYPE_OPTIONS,
-    ARGSTYPE_DATA,
+    ARGSTYPE_args,
+    ARGSTYPE_REGDATA,
     ARGSTYPE_ERROR,
 } ArgsType;
 
@@ -29,26 +30,26 @@ inline ArgsType __Command_identify(const char* start, const char* end);
 inline bool __Command_process(ArgsType type, const char* start, const char* end);
 
 inline ArgsType __Command_validateRegisters(const char* start, const char* end);
-inline ArgsType __Command_validateOptions(const char* start, const char* end);
-inline ArgsType __Command_validateData(const char* start, const char* end);
+inline ArgsType __Command_validateargs(const char* start, const char* end);
+inline ArgsType __Command_validateRegData(const char* start, const char* end);
 inline ArgsType __Command_validateCmdName(const char* start, const char* end);
 inline void __Command_processRegisters(const char* start, const char* end);
-inline void __Command_processOptions(const char* start, const char* end);
-inline void __Command_processData(const char* start, const char* end);
+inline void __Command_processArgs(const char* start, const char* end);
+inline void __Command_processRegData(const char* start, const char* end);
 inline void __Command_processCmdName(const char* start, const char* end);
 inline void __Command_processError(const char* start, const char* end);
 
+// array of pointers of functions
 void (*const __Command_processors[])(const char* start, const char* end) = {
     __Command_processCmdName,
     __Command_processRegisters,
-    __Command_processOptions,
-    __Command_processData,
+    __Command_processArgs,
+    __Command_processRegData,
     __Command_processError,
 };
+/**************************************************************************/
 
-const char error_msg[] = "Syntax Error at ";
-const uint8_t error_msg_len = sizeof(error_msg) - 1;
-
+/****************** public member functions definitions ******************/
 const Command* Command_parse(const char* cmd) {
     const char* start;
     const char* end;
@@ -56,7 +57,7 @@ const Command* Command_parse(const char* cmd) {
 
     // set/reset currentCmd
     currentCmd.name_len = 0;
-    currentCmd.use_data = false;
+    currentCmd.using_reg_data = false;
     currentCmd.args_len = 0;
 
     while(*cmd != '\0') {
@@ -78,14 +79,16 @@ const Command* Command_parse(const char* cmd) {
 
 void Command_exec(const Command* command) {
 }
+/**************************************************************************/
 
+/****************** private member functions definitions ******************/
 ArgsType __Command_identify(const char* start, const char* end) {
     if(*start == '$') 
         return __Command_validateRegisters(start, end);
     else if(*start == '-')
-        return __Command_validateOptions(start, end);
+        return __Command_validateargs(start, end);
     else if(*start == '\"' || *start == '\'')
-        return __Command_validateData(start, end);
+        return __Command_validateRegData(start, end);
     else
         return __Command_validateCmdName(start, end);
 }
@@ -104,15 +107,15 @@ ArgsType __Command_validateRegisters(const char* start, const char* end) {
 
     if( currentCmd.name_len == 0 )
         return ARGSTYPE_ERROR;
-    else if (currentCmd.use_data == true)
+    else if (currentCmd.using_reg_data == true)
         return ARGSTYPE_ERROR;
-    else if(currentCmd.args_len >= CMD_ARGS_LEN) 
+    else if(currentCmd.args_len >= CMD_ARGS_COUNT) 
         return ARGSTYPE_ERROR;
 
     return ARGSTYPE_REGISTERS;
 }
 
-ArgsType __Command_validateOptions(const char* start, const char* end) {
+ArgsType __Command_validateargs(const char* start, const char* end) {
     if((end - start + 1) > 2) return ARGSTYPE_ERROR;
     // check if *end is in [a-zA-Z]
     if( (*end < 'A') || (*end > 'z') ) return ARGSTYPE_ERROR;
@@ -120,15 +123,15 @@ ArgsType __Command_validateOptions(const char* start, const char* end) {
 
     if( currentCmd.name_len == 0 )
         return ARGSTYPE_ERROR;
-    else if (currentCmd.use_data == true)
+    else if (currentCmd.using_reg_data == true)
         return ARGSTYPE_ERROR;
-    else if(currentCmd.args_len >= CMD_ARGS_LEN) 
+    else if(currentCmd.args_len >= CMD_ARGS_COUNT) 
         return ARGSTYPE_ERROR;
 
-    return ARGSTYPE_OPTIONS;
+    return ARGSTYPE_args;
 }
 
-ArgsType __Command_validateData(const char* start, const char* end) {
+ArgsType __Command_validateRegData(const char* start, const char* end) {
     if( (end - start + 1) > CMD_REG_LEN ) return ARGSTYPE_ERROR;
     if( (*end != '\'') && (*end != '\"') ) return ARGSTYPE_ERROR;
 
@@ -137,7 +140,7 @@ ArgsType __Command_validateData(const char* start, const char* end) {
     else if (currentCmd.args_len != 0)
         return ARGSTYPE_ERROR;
 
-    return ARGSTYPE_DATA;
+    return ARGSTYPE_REGDATA;
 }
 
 ArgsType __Command_validateCmdName(const char* start, const char* end) {
@@ -150,19 +153,19 @@ ArgsType __Command_validateCmdName(const char* start, const char* end) {
 }
 
 void __Command_processRegisters(const char* start, const char* end) {
-    currentCmd.options[currentCmd.args_len++] = *end;
+    currentCmd.args[currentCmd.args_len++] = *end;
 }
 
-void __Command_processOptions(const char* start, const char* end) {
-    currentCmd.options[currentCmd.args_len++] = *end;
+void __Command_processArgs(const char* start, const char* end) {
+    currentCmd.args[currentCmd.args_len++] = *end;
 }
 
-void __Command_processData(const char* start, const char* end) {
+void __Command_processRegData(const char* start, const char* end) {
     uint8_t len = end - start + 1;
 
-    currentCmd.use_data = true;
-    strncpy(currentCmd.data, start, len);
-    currentCmd.data[len] = '\0';
+    currentCmd.using_reg_data = true;
+    strncpy(currentCmd.reg_data, start, len);
+    currentCmd.reg_data[len] = '\0';
     currentCmd.args_len = len;
 }
 
@@ -174,7 +177,8 @@ void __Command_processCmdName(const char* start, const char* end) {
 }
 
 void __Command_processError(const char* start, const char* end) {
-    Comm_write(error_msg, error_msg_len);
+    Comm_write("Syntax Error at ", sizeof("Syntax Error at "));
     Comm_write(start, end - start + 1);
     Comm_writeChar(CMD_DELIMITER);
 }
+/**************************************************************************/

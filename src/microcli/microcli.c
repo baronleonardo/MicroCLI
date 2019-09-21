@@ -7,10 +7,8 @@
 #include <stdint.h>
 
 /***************************** Static Variables *****************************/
-const char newCmdIndicator[]        = "> ";
-const uint8_t newCmdIndicatorLen    = 2;
 char cmd_raw_input[CMD_INPUT_MAX_LEN];
-uint32_t current_input_length       = 0;
+uint32_t current_input_length = 0;
 /****************************************************************************/
 
 /********************************** Macros **********************************/
@@ -75,13 +73,16 @@ void Microcli_mainLoop() {
 
 /***************************** Private functions *****************************/
 void __Microcli_sendNewCmdIndicator() {
-    Comm_write(newCmdIndicator, newCmdIndicatorLen);
+    Comm_write( CMD_NEW_CMD_INDICATOR, 
+                sizeof(CMD_NEW_CMD_INDICATOR) );
 }
 
 void __Microcli_onOverflowInputLength() {
-    const char overflow_msg[] = "\rYou exceeded the max number of charaters for one command! reseting\r";
-    const uint8_t overflow_msg_len = sizeof(overflow_msg);
-    Comm_write(overflow_msg, overflow_msg_len);
+    const char overflow_msg[] = "You exceeded the max number of charaters for one command! reseting";
+
+    Comm_writeChar(CMD_DELIMITER);
+    Comm_write(overflow_msg, sizeof(overflow_msg));
+    Comm_writeChar(CMD_DELIMITER);
     __Microcli_sendNewCmdIndicator();
     current_input_length = 0;
 }
