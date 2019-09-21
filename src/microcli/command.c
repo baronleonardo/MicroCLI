@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <string.h>
 #include "../communication/communication.h"
+#include "commanddb/commanddbmanager.h"
 
 /****************** Variables and functions declarations ******************/
 struct Command {
@@ -78,6 +79,15 @@ const Command* Command_parse(const char* cmd) {
 }
 
 void Command_exec(const Command* command) {
+   intptr_t cmd_id = CommandDB_getCommandId(currentCmd.name, currentCmd.name_len);
+   if(cmd_id != -1) {
+       CommandDB_getCommandFunc(cmd_id)(
+               currentCmd.using_reg_data == true ? currentCmd.reg_data : currentCmd.args,
+               currentCmd.args_len );
+   } else {
+       Comm_write("Unknown Command", sizeof("Unknown Command"));
+       Comm_writeChar(CMD_DELIMITER);
+   }
 }
 /**************************************************************************/
 

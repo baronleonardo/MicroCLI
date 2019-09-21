@@ -2,9 +2,11 @@
 #include "../mcu/mcu.h"
 #include "../communication/communication.h"
 #include "../config.h"
+#include "commanddb/commanddbmanager.h"
 #include "command.h"
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdlib.h>
 
 /***************************** Static Variables *****************************/
 char cmd_raw_input[CMD_INPUT_MAX_LEN];
@@ -27,6 +29,7 @@ inline void __Microcli_onBackspaceKeyReceived();
 
 void Microcli_init() {
     Mcu_init();
+    CommandDB_init();
 
     Comm_connect();
     // wait for a connection
@@ -90,7 +93,8 @@ void __Microcli_onOverflowInputLength() {
 void __Microcli_onDelimiterKeyReceived() {
     cmd_raw_input[current_input_length] = '\0';
 
-    Command_parse(cmd_raw_input);
+    const Command* cmd = Command_parse(cmd_raw_input);
+    if( cmd != NULL ) Command_exec(cmd);
 
     __Microcli_sendNewCmdIndicator();
     current_input_length = 0;
