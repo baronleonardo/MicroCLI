@@ -1,7 +1,7 @@
-#include "../../../config.h"
+#include "../../../../config.h"
 
 #if defined uart && defined esp12e
-#include "../../communication.h"
+#include "../../cli_communication.h"
 #include "../../../clock/clock.h"
 #include "Arduino.h"
 

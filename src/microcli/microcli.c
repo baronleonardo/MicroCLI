@@ -1,6 +1,5 @@
 #include "microcli.h"
-#include "../mcu/mcu.h"
-#include "../communication/communication.h"
+#include "../drivers/drivers.h"
 #include "../config.h"
 #include "commanddb/commanddbmanager.h"
 #include "command.h"

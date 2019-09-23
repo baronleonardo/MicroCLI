@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
-#include "../communication/communication.h"
+#include "../drivers/drivers.h"
 #include "commanddb/commanddbmanager.h"
 
 /****************** Variables and functions declarations ******************/

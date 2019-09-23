@@ -1,5 +1,5 @@
-#ifndef COMMUNICATION_H
-#define COMMUNICATION_H
+#ifndef CLI_COMMUNICATION_H
+#define CLI_COMMUNICATION_H
 
 
 #ifdef __cplusplus
@@ -20,4 +20,4 @@ void Comm_writeChar(char data);
   }
 #endif
 
-#endif // COMMUNICATION_H
+#endif // CLI_COMMUNICATION_H
