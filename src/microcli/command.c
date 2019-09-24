@@ -31,7 +31,7 @@ inline ArgsType __Command_identify(const char* start, const char* end);
 inline bool __Command_process(ArgsType type, const char* start, const char* end);
 
 inline ArgsType __Command_validateRegisters(const char* start, const char* end);
-inline ArgsType __Command_validateargs(const char* start, const char* end);
+inline ArgsType __Command_validateArgs(const char* start, const char* end);
 inline ArgsType __Command_validateRegData(const char* start, const char* end);
 inline ArgsType __Command_validateCmdName(const char* start, const char* end);
 inline void __Command_processRegisters(const char* start, const char* end);
@@ -96,8 +96,8 @@ ArgsType __Command_identify(const char* start, const char* end) {
     if(*start == '$') 
         return __Command_validateRegisters(start, end);
     else if(*start == '-')
-        return __Command_validateargs(start, end);
-    else if(*start == '\"' || *start == '\'')
+        return __Command_validateArgs(start, end);
+    else if(*start == '\"' || *start == '\'' || *start == '#')
         return __Command_validateRegData(start, end);
     else
         return __Command_validateCmdName(start, end);
@@ -125,7 +125,7 @@ ArgsType __Command_validateRegisters(const char* start, const char* end) {
     return ARGSTYPE_REGISTERS;
 }
 
-ArgsType __Command_validateargs(const char* start, const char* end) {
+ArgsType __Command_validateArgs(const char* start, const char* end) {
     if((end - start + 1) > 2) return ARGSTYPE_ERROR;
     // check if *end is in [a-zA-Z]
     if( (*end < 'A') || (*end > 'z') ) return ARGSTYPE_ERROR;
@@ -143,7 +143,8 @@ ArgsType __Command_validateargs(const char* start, const char* end) {
 
 ArgsType __Command_validateRegData(const char* start, const char* end) {
     if( (end - start + 1) > CMD_REG_LEN ) return ARGSTYPE_ERROR;
-    if( (*end != '\'') && (*end != '\"') ) return ARGSTYPE_ERROR;
+    if(*start != '#')
+        if( (*end != '\'') && (*end != '\"') ) return ARGSTYPE_ERROR;
 
     if( currentCmd.name_len == 0 )
         return ARGSTYPE_ERROR;
@@ -172,9 +173,9 @@ void __Command_processArgs(const char* start, const char* end) {
 
 void __Command_processRegData(const char* start, const char* end) {
     uint8_t len = end - start + 1;
-
     currentCmd.using_reg_data = true;
     strncpy(currentCmd.reg_data, start, len);
+    // TODO: remove this part
     currentCmd.reg_data[len] = '\0';
     currentCmd.args_len = len;
 }
@@ -182,6 +183,7 @@ void __Command_processRegData(const char* start, const char* end) {
 void __Command_processCmdName(const char* start, const char* end) {
     uint8_t len = end - start + 1;
     strncpy(currentCmd.name, start, len);
+    // TODO: remove this part
     currentCmd.name[len] = '\0';
     currentCmd.name_len = len;
 }
