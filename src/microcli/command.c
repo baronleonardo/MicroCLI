@@ -85,7 +85,7 @@ void Command_exec(const Command* command) {
             currentCmd.using_reg_data == true ? currentCmd.reg_data : currentCmd.args,
             currentCmd.args_len );
    } else {
-        Comm_write("Unknown Command", sizeof("Unknown Command"));
+        Comm_write("Unknown Command", sizeof("Unknown Command") - 1);
         Comm_writeNewLine();
    }
 }
@@ -189,7 +189,7 @@ void __Command_processCmdName(const char* start, const char* end) {
 }
 
 void __Command_processError(const char* start, const char* end) {
-    Comm_write("Syntax Error at ", sizeof("Syntax Error at "));
+    Comm_write("Syntax Error at ", sizeof("Syntax Error at ") - 1);
     Comm_write(start, end - start + 1);
     Comm_writeNewLine();
 }

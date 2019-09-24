@@ -88,14 +88,14 @@ void Microcli_mainLoop() {
 /***************************** Private functions *****************************/
 void __Microcli_sendNewCmdIndicator() {
     Comm_write( CMD_NEW_CMD_INDICATOR, 
-                sizeof(CMD_NEW_CMD_INDICATOR) );
+                sizeof(CMD_NEW_CMD_INDICATOR) - 1 );
 }
 
 void __Microcli_onOverflowInputLength() {
     const char overflow_msg[] = "You exceeded the max number of charaters for one command! reseting";
 
     Comm_writeNewLine();
-    Comm_write(overflow_msg, sizeof(overflow_msg));
+    Comm_write(overflow_msg, sizeof(overflow_msg) - 1);
     Comm_writeNewLine();
     __Microcli_sendNewCmdIndicator();
     current_input_length = 0;

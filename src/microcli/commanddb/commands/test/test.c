@@ -3,5 +3,5 @@
 
 void cmd_test(char args[], uint8_t args_len) {
     const char out[] = "Test is done";
-    Comm_write(out, sizeof(out));
+    Comm_write(out, sizeof(out) - 1);
 }
