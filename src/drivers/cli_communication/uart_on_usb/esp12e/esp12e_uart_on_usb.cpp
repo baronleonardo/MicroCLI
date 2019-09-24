@@ -38,4 +38,14 @@ extern "C" void Comm_writeChar(char data) {
     Serial.write(data);
 }
 
+void Comm_writeNewLine() {
+#if   CMD_LINE_ENDING == 1
+    Serial.write('\n');
+#elif CMD_LINE_ENDING == 2
+    Serial.write('\n');
+#elif CMD_LINE_ENDING == 3
+    Serial.write("\r\n", 2);
+#endif
+}
+
 #endif // uart && esp12e

@@ -21,7 +21,7 @@ uint32_t current_input_length = 0;
 /************************** Functions declaration **************************/
 inline void __Microcli_sendNewCmdIndicator();
 inline void __Microcli_onOverflowInputLength();
-inline void __Microcli_onDelimiterKeyReceived();
+inline void __Microcli_onLineEndingKeyReceived();
 inline void __Microcli_onEndOfTransmitionKeyReceived();
 inline void __Microcli_onBackspaceKeyReceived();
 /***************************************************************************/
@@ -51,10 +51,22 @@ void Microcli_mainLoop() {
                 Comm_writeChar(cmd_raw_input[current_input_length]);
 
                 switch( cmd_raw_input[current_input_length] ) {
-                    case CMD_DELIMITER:
-                        __Microcli_onDelimiterKeyReceived();
-                        break;
 
+#if   CMD_LINE_ENDING == 1
+                    case '\n':
+                        __Microcli_onLineEndingKeyReceived();
+                        break;
+#elif CMD_LINE_ENDING == 2
+                    case '\r':
+                        __Microcli_onLineEndingKeyReceived();
+                        break;
+#elif CMD_LINE_ENDING == 3
+                    case '\r':
+                        break;
+                    case '\n':
+                        __Microcli_onLineEndingKeyReceived();
+                        break;
+#endif
                     case EOT:
                         __Microcli_onEndOfTransmitionKeyReceived();
                         break;
@@ -82,14 +94,14 @@ void __Microcli_sendNewCmdIndicator() {
 void __Microcli_onOverflowInputLength() {
     const char overflow_msg[] = "You exceeded the max number of charaters for one command! reseting";
 
-    Comm_writeChar(CMD_DELIMITER);
+    Comm_writeNewLine();
     Comm_write(overflow_msg, sizeof(overflow_msg));
-    Comm_writeChar(CMD_DELIMITER);
+    Comm_writeNewLine();
     __Microcli_sendNewCmdIndicator();
     current_input_length = 0;
 }
 
-void __Microcli_onDelimiterKeyReceived() {
+void __Microcli_onLineEndingKeyReceived() {
     cmd_raw_input[current_input_length] = '\0';
 
     const Command* cmd = Command_parse(cmd_raw_input);
@@ -102,7 +114,7 @@ void __Microcli_onDelimiterKeyReceived() {
 void __Microcli_onEndOfTransmitionKeyReceived() {
     // on Linux   -> <Ctrl+d>
     // on Windows -> <Ctrl+z>
-    Comm_writeChar(CMD_DELIMITER);
+    Comm_writeNewLine();
     __Microcli_sendNewCmdIndicator();
     current_input_length = 0;
 }

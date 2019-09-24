@@ -13,7 +13,10 @@
 
 /******************************* MicroCMD *******************************/
 #define CMD_INPUT_MAX_LEN       101
-#define CMD_DELIMITER           '\n'
+// 1 -> '\n' 
+// 2 -> '\r' 
+// 3 -> "\r\n"
+#define CMD_LINE_ENDING         3
 #define CMD_NEW_CMD_INDICATOR   "> "
 #define CMD_NAME_LEN            11
 #define CMD_ARGS_COUNT          5

@@ -81,12 +81,12 @@ const Command* Command_parse(const char* cmd) {
 void Command_exec(const Command* command) {
    intptr_t cmd_id = CommandDB_getCommandId(currentCmd.name, currentCmd.name_len);
    if(cmd_id != -1) {
-       CommandDB_getCommandFunc(cmd_id)(
-               currentCmd.using_reg_data == true ? currentCmd.reg_data : currentCmd.args,
-               currentCmd.args_len );
+        CommandDB_getCommandFunc(cmd_id)(
+            currentCmd.using_reg_data == true ? currentCmd.reg_data : currentCmd.args,
+            currentCmd.args_len );
    } else {
-       Comm_write("Unknown Command", sizeof("Unknown Command"));
-       Comm_writeChar(CMD_DELIMITER);
+        Comm_write("Unknown Command", sizeof("Unknown Command"));
+        Comm_writeNewLine();
    }
 }
 /**************************************************************************/
@@ -189,6 +189,6 @@ void __Command_processCmdName(const char* start, const char* end) {
 void __Command_processError(const char* start, const char* end) {
     Comm_write("Syntax Error at ", sizeof("Syntax Error at "));
     Comm_write(start, end - start + 1);
-    Comm_writeChar(CMD_DELIMITER);
+    Comm_writeNewLine();
 }
 /**************************************************************************/
