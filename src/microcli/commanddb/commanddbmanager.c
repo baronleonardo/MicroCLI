@@ -7,8 +7,8 @@
 #define ALPHA_LENS      26
 
 typedef struct CommandDB_Node {
-    intptr_t id;
-    char* cmd_name;
+    uintptr_t id;
+    const char* cmd_name;
     uint8_t cmd_name_len;
     CommandFunction func;
     struct CommandDB_Node* next;
@@ -22,7 +22,7 @@ void CommandDB_init() {
     CommandDB_createDatabase();
 }
 
-CommandDB_AddErrors CommandDB_add( char* command_name, 
+CommandDB_AddErrors CommandDB_add( const char* command_name, 
                                    uint8_t command_name_len, 
                                    CommandFunction func ) {
     if(command_name[0] > 'z' || command_name[0] < 'a') 
@@ -33,7 +33,7 @@ CommandDB_AddErrors CommandDB_add( char* command_name,
     // create new node
     CommandDB_Node* new_node = malloc(sizeof(CommandDB_Node));
     if(new_node == NULL) return COMMAND_DB_ADDERROR_OUTOFMEM;
-    new_node->id            = (intptr_t)new_node;
+    new_node->id            = (uintptr_t)new_node;
     new_node->cmd_name      = command_name;
     new_node->cmd_name_len  = command_name_len;
     new_node->func          = func;
@@ -52,9 +52,9 @@ CommandDB_AddErrors CommandDB_add( char* command_name,
     return COMMAND_DB_ADDERROR_NOERROR;
 }
 
-intptr_t CommandDB_getCommandId(char* command_name, uint8_t command_name_len) {
+uintptr_t CommandDB_getCommandId(const char* command_name, uint8_t command_name_len) {
     // find if command_name exists
-    // else return -1
+    // else return 0
     CommandDB_Node* node_ptr = commands_db[command_name[0] - 'a'];
 
     for(; node_ptr != NULL; node_ptr = node_ptr->next) {
@@ -62,10 +62,10 @@ intptr_t CommandDB_getCommandId(char* command_name, uint8_t command_name_len) {
             return node_ptr->id;
     }
 
-    return -1;
+    return 0;
 }
 
-CommandFunction CommandDB_getCommandFunc(intptr_t id) {
+CommandFunction CommandDB_getCommandFunc(uintptr_t id) {
     return ((CommandDB_Node *)id)->func;
 }
 /**********************************************************************/

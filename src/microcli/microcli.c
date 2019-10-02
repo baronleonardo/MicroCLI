@@ -102,9 +102,9 @@ void __Microcli_onOverflowInputLength() {
 }
 
 void __Microcli_onLineEndingKeyReceived() {
-    cmd_raw_input[current_input_length] = '\0';
+    cmd_raw_input[current_input_length++] = '\0';
 
-    const Command* cmd = Command_parse(cmd_raw_input);
+    Command* cmd = Command_parse(cmd_raw_input, current_input_length);
     if( cmd != NULL ) Command_exec(cmd);
 
     __Microcli_sendNewCmdIndicator();

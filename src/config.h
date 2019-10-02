@@ -12,14 +12,14 @@
 #define MAX_READ_DELAY  200          // in microseconds
 
 /******************************* MicroCMD *******************************/
-#define CMD_INPUT_MAX_LEN       101
+#define CMD_INPUT_MAX_LEN           101
 // 1 -> '\n' 
 // 2 -> '\r' 
 // 3 -> "\r\n"
-#define CMD_LINE_ENDING         3
-#define CMD_NEW_CMD_INDICATOR   "> "
-#define CMD_NAME_LEN            11
-#define CMD_ARGS_COUNT          5
-#define CMD_REG_LEN             11
+#define CMD_LINE_ENDING             3
+#define CMD_NEW_CMD_INDICATOR       "> "
+#define CMD_NAME_LEN                11
+#define CMD_REG_LEN                 10
+#define CMD_REGS_COUNT              10
 
 #endif // CONFIG_H

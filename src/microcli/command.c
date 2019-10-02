@@ -2,195 +2,202 @@
 #include "../config.h"
 #include <stdbool.h>
 #include <stdlib.h>
-#include <stdint.h>
 #include <string.h>
 #include "../drivers/drivers.h"
 #include "commanddb/commanddbmanager.h"
 
 /****************** Variables and functions declarations ******************/
+// We have 2 types of arguments
+// first type : multiple one char arguments - including registers
+// second type: one big argument surrounding with single/double quotations
 struct Command {
-    char name[CMD_NAME_LEN];
-    uint8_t name_len;
-    bool using_reg_data;
+    uintptr_t id;
     uint8_t args_len;
-    union {
-        char args[CMD_ARGS_COUNT];
-        char reg_data[CMD_REG_LEN];
-    };
-} currentCmd;
+    bool using_multiple_args;
+    char args[];
+};
+
+struct Command* currentCmd;
 
 typedef enum ArgsType {
     ARGSTYPE_CMDNAME,
     ARGSTYPE_REGISTERS,
-    ARGSTYPE_args,
-    ARGSTYPE_REGDATA,
-    ARGSTYPE_ERROR,
+    ARSTYPE_MULTIPLEARGS,
+    ARGSTYPE_ONEBIGARG,
+    ARGSTYPE_ERROR_SYNTAX,
+    ARGSTYPE_ERROR_CMDNAME,
 } ArgsType;
 
-inline ArgsType __Command_identify(const char* start, const char* end);
+inline ArgsType __Command_identify(const char* cmd, const char* start, const char* end);
 inline bool __Command_process(ArgsType type, const char* start, const char* end);
 
-inline ArgsType __Command_validateRegisters(const char* start, const char* end);
-inline ArgsType __Command_validateArgs(const char* start, const char* end);
-inline ArgsType __Command_validateRegData(const char* start, const char* end);
+inline ArgsType __Command_validateRegsiter(const char* start, const char* end);
+inline ArgsType __Command_validateArg(const char* start, const char* end);
+inline ArgsType __Command_validateOneBigArg(const char* start, const char* end);
 inline ArgsType __Command_validateCmdName(const char* start, const char* end);
-inline void __Command_processRegisters(const char* start, const char* end);
-inline void __Command_processArgs(const char* start, const char* end);
-inline void __Command_processRegData(const char* start, const char* end);
+inline void __Command_processRegister(const char* start, const char* end);
+inline void __Command_processArg(const char* start, const char* end);
+inline void __Command_processOneBigArg(const char* start, const char* end);
 inline void __Command_processCmdName(const char* start, const char* end);
-inline void __Command_processError(const char* start, const char* end);
+inline void __Command_processSyntaxError(const char* start, const char* end);
+inline void __Command_processCmdNameError(const char* start, const char* end);
 
 // array of pointers of functions
 void (*const __Command_processors[])(const char* start, const char* end) = {
     __Command_processCmdName,
-    __Command_processRegisters,
-    __Command_processArgs,
-    __Command_processRegData,
-    __Command_processError,
+    __Command_processRegister,
+    __Command_processArg,
+    __Command_processOneBigArg,
+    __Command_processSyntaxError,
+    __Command_processCmdNameError,
 };
 /**************************************************************************/
 
 /****************** public member functions definitions ******************/
-const Command* Command_parse(const char* cmd) {
+Command* Command_parse(const char* cmd, uint8_t cmd_len) {
     const char* start;
     const char* end;
     ArgsType args_type;
+    const char* cmd_start = cmd;
+
+    currentCmd = malloc(sizeof(struct Command) + cmd_len);
+    if(currentCmd == NULL) return NULL;
 
     // set/reset currentCmd
-    currentCmd.name_len = 0;
-    currentCmd.using_reg_data = false;
-    currentCmd.args_len = 0;
+    currentCmd->id = 0;
+    currentCmd->using_multiple_args = true;
+    currentCmd->args_len = 0;
 
     while(*cmd != '\0') {
         if(*cmd > ' ') {
             start = cmd;
             while(*(++cmd) > ' ');
             end = cmd - 1;
-            
-            args_type = __Command_identify(start, end);
-            if(__Command_process(args_type, start, end) == false)
+           
+            args_type = __Command_identify(cmd_start, start, end);
+            if(__Command_process(args_type, start, end) == false) {
+                free(currentCmd);
                 return NULL;
+            }
         }
 
         else ++cmd;
     }
 
-    return &currentCmd;
+    return currentCmd;
 }
 
-void Command_exec(const Command* command) {
-   intptr_t cmd_id = CommandDB_getCommandId(currentCmd.name, currentCmd.name_len);
-   if(cmd_id != -1) {
-        CommandDB_getCommandFunc(cmd_id)(
-            currentCmd.using_reg_data == true ? currentCmd.reg_data : currentCmd.args,
-            currentCmd.args_len );
-   } else {
-        Comm_write("Unknown Command", sizeof("Unknown Command") - 1);
-        Comm_writeNewLine();
-   }
+void Command_exec(Command* command) {
+    if(command != NULL) {
+        if(command->id != 0)
+            CommandDB_getCommandFunc(command->id)( command->args, command->args_len );
+
+        // free allocated command
+        free(command);
+    }
 }
 /**************************************************************************/
 
 /****************** private member functions definitions ******************/
-ArgsType __Command_identify(const char* start, const char* end) {
+ArgsType __Command_identify(const char* cmd, const char* start, const char* end) {
     if(*start == '$') 
-        return __Command_validateRegisters(start, end);
+        return __Command_validateRegsiter(start, end);
     else if(*start == '-')
-        return __Command_validateArgs(start, end);
-    else if(*start == '\"' || *start == '\'' || *start == '#')
-        return __Command_validateRegData(start, end);
-    else
+        return __Command_validateArg(start, end);
+    else if(*start == '\"' || *start == '\'')
+        return __Command_validateOneBigArg(start, end);
+    else if(cmd == start) // if true, then check if this is command name
         return __Command_validateCmdName(start, end);
+    else 
+        return ARGSTYPE_ERROR_SYNTAX;
 }
 
 bool __Command_process(ArgsType type, const char* start, const char* end) {
    __Command_processors[type](start, end);
 
-   if(type == ARGSTYPE_ERROR) return false;
+   if( (type == ARGSTYPE_ERROR_CMDNAME) || (type == ARGSTYPE_ERROR_SYNTAX) )
+       return false;
 
    return true;
 }
 
-ArgsType __Command_validateRegisters(const char* start, const char* end) {
-    if((end - start + 1) > 2)  return ARGSTYPE_ERROR;
-    if( (*end <= '0') || (*end >= '9') ) return ARGSTYPE_ERROR;
+ArgsType __Command_validateRegsiter(const char* start, const char* end) {
+    if((end - start + 1) > 2)  return ARGSTYPE_ERROR_SYNTAX;
+    if( (*end <= '0') || (*end >= '9') ) return ARGSTYPE_ERROR_SYNTAX;
 
-    if( currentCmd.name_len == 0 )
-        return ARGSTYPE_ERROR;
-    else if (currentCmd.using_reg_data == true)
-        return ARGSTYPE_ERROR;
-    else if(currentCmd.args_len >= CMD_ARGS_COUNT) 
-        return ARGSTYPE_ERROR;
+    if( currentCmd->id == 0 )
+        return ARGSTYPE_ERROR_SYNTAX;
+    else if (currentCmd->using_multiple_args == false)
+        return ARGSTYPE_ERROR_SYNTAX;
 
     return ARGSTYPE_REGISTERS;
 }
 
-ArgsType __Command_validateArgs(const char* start, const char* end) {
-    if((end - start + 1) > 2) return ARGSTYPE_ERROR;
-    // check if *end is in [a-zA-Z]
-    if( (*end < 'A') || (*end > 'z') ) return ARGSTYPE_ERROR;
-    else if( (*end < 'a') && (*end > 'Z') ) return ARGSTYPE_ERROR;
+ArgsType __Command_validateArg(const char* start, const char* end) {
+    if((end - start + 1) > 2) return ARGSTYPE_ERROR_SYNTAX;
+    if( (*end < 'a') || (*end > 'z') ) return ARGSTYPE_ERROR_SYNTAX;
 
-    if( currentCmd.name_len == 0 )
-        return ARGSTYPE_ERROR;
-    else if (currentCmd.using_reg_data == true)
-        return ARGSTYPE_ERROR;
-    else if(currentCmd.args_len >= CMD_ARGS_COUNT) 
-        return ARGSTYPE_ERROR;
+    if( currentCmd->id == 0 )
+        return ARGSTYPE_ERROR_SYNTAX;
+    else if (currentCmd->using_multiple_args == false)
+        return ARGSTYPE_ERROR_SYNTAX;
 
-    return ARGSTYPE_args;
+    return ARSTYPE_MULTIPLEARGS;
 }
 
-ArgsType __Command_validateRegData(const char* start, const char* end) {
-    if( (end - start + 1) > CMD_REG_LEN ) return ARGSTYPE_ERROR;
-    if(*start != '#')
-        if( (*end != '\'') && (*end != '\"') ) return ARGSTYPE_ERROR;
+ArgsType __Command_validateOneBigArg(const char* start, const char* end) {
+    if( (*end != '\'') && (*end != '\"') ) return ARGSTYPE_ERROR_SYNTAX;
 
-    if( currentCmd.name_len == 0 )
-        return ARGSTYPE_ERROR;
-    else if (currentCmd.args_len != 0)
-        return ARGSTYPE_ERROR;
+    if( currentCmd->id == 0 )
+        return ARGSTYPE_ERROR_SYNTAX;
+    else if (currentCmd->args_len != 0)
+        return ARGSTYPE_ERROR_SYNTAX;
 
-    return ARGSTYPE_REGDATA;
+    return ARGSTYPE_ONEBIGARG;
 }
 
 ArgsType __Command_validateCmdName(const char* start, const char* end) {
-    if( (end - start + 1) > CMD_NAME_LEN ) return ARGSTYPE_ERROR;
+    if( (end - start + 1) > CMD_NAME_LEN ) 
+        return ARGSTYPE_ERROR_CMDNAME;
 
-    if( currentCmd.name_len != 0 )
-        return ARGSTYPE_ERROR;
+    if( currentCmd->id != 0 )
+        return ARGSTYPE_ERROR_CMDNAME;
+
+    uint8_t len = end - start + 1;
+    if(CommandDB_getCommandId(start, len) == 0)
+        return ARGSTYPE_ERROR_CMDNAME;
 
     return ARGSTYPE_CMDNAME;
 }
 
-void __Command_processRegisters(const char* start, const char* end) {
-    currentCmd.args[currentCmd.args_len++] = *end;
+void __Command_processRegister(const char* start, const char* end) {
+    currentCmd->args[currentCmd->args_len++] = *end;
 }
 
-void __Command_processArgs(const char* start, const char* end) {
-    currentCmd.args[currentCmd.args_len++] = *end;
+void __Command_processArg(const char* start, const char* end) {
+    currentCmd->args[currentCmd->args_len++] = *end;
 }
 
-void __Command_processRegData(const char* start, const char* end) {
+void __Command_processOneBigArg(const char* start, const char* end) {
     uint8_t len = end - start + 1;
-    currentCmd.using_reg_data = true;
-    strncpy(currentCmd.reg_data, start, len);
-    // TODO: remove this part
-    currentCmd.reg_data[len] = '\0';
-    currentCmd.args_len = len;
+    currentCmd->using_multiple_args = false;
+    strncpy(currentCmd->args, start, len);
+    currentCmd->args_len = len;
 }
 
 void __Command_processCmdName(const char* start, const char* end) {
     uint8_t len = end - start + 1;
-    strncpy(currentCmd.name, start, len);
-    // TODO: remove this part
-    currentCmd.name[len] = '\0';
-    currentCmd.name_len = len;
+    currentCmd->id = CommandDB_getCommandId(start, len);
 }
 
-void __Command_processError(const char* start, const char* end) {
+void __Command_processSyntaxError(const char* start, const char* end) {
     Comm_write("Syntax Error at ", sizeof("Syntax Error at ") - 1);
     Comm_write(start, end - start + 1);
+    Comm_writeNewLine();
+}
+
+void __Command_processCmdNameError(const char* start, const char* end) {
+    Comm_write("Unknown Command", sizeof("Unknown Command") - 1);
     Comm_writeNewLine();
 }
 /**************************************************************************/
