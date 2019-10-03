@@ -71,7 +71,15 @@ Command* Command_parse(const char* cmd, uint8_t cmd_len) {
     while(*cmd != '\0') {
         if(*cmd > ' ') {
             start = cmd;
-            while(*(++cmd) > ' ');
+
+            // Check for one big argument 
+            // and get the whole input between quotations
+            if(*cmd == '\"') {
+                while((*(++cmd) != '\"') && (*cmd != '\0'));
+                if(*cmd == '\"') cmd++;
+            } else
+                while(*(++cmd) > ' ');
+
             end = cmd - 1;
            
             args_type = __Command_identify(cmd_start, start, end);
@@ -104,7 +112,7 @@ ArgsType __Command_identify(const char* cmd, const char* start, const char* end)
         return __Command_validateRegsiter(start, end);
     else if(*start == '-')
         return __Command_validateArg(start, end);
-    else if(*start == '\"' || *start == '\'')
+    else if(*start == '\"')
         return __Command_validateOneBigArg(start, end);
     else if(cmd == start) // if true, then check if this is command name
         return __Command_validateCmdName(start, end);
@@ -146,7 +154,7 @@ ArgsType __Command_validateArg(const char* start, const char* end) {
 }
 
 ArgsType __Command_validateOneBigArg(const char* start, const char* end) {
-    if( (*end != '\'') && (*end != '\"') ) return ARGSTYPE_ERROR_SYNTAX;
+    if(*end != '\"') return ARGSTYPE_ERROR_SYNTAX;
 
     if( currentCmd->id == 0 )
         return ARGSTYPE_ERROR_SYNTAX;
