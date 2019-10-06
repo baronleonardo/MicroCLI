@@ -131,7 +131,7 @@ bool __Command_process(ArgsType type, const char* start, const char* end) {
 
 ArgsType __Command_validateRegsiter(const char* start, const char* end) {
     if((end - start + 1) > 2)  return ARGSTYPE_ERROR_SYNTAX;
-    if( (*end <= '0') || (*end >= '9') ) return ARGSTYPE_ERROR_SYNTAX;
+    if( (*end < '0') || (*end > '9') ) return ARGSTYPE_ERROR_SYNTAX;
 
     if( currentCmd->id == 0 )
         return ARGSTYPE_ERROR_SYNTAX;
