@@ -2,10 +2,13 @@
 #include "commands/test/test.h"
 #include "commands/reg/reg.h"
 #include "commands/io/io.h"
+#include "commands/inc_dec/inc_dec.h"
 
 void CommandDB_createDatabase() {
     CommandDB_add("test",   sizeof("test") - 1,   cmd_test);
     CommandDB_add("regset", sizeof("regset") - 1, regSet);
     CommandDB_add("regget", sizeof("regget") - 1, regGet);
     CommandDB_add("io",     sizeof("io") - 1,     cmd_io);
+    CommandDB_add("inc",    sizeof("inc") - 1,    cmd_inc);
+    CommandDB_add("dec",    sizeof("dec") - 1,    cmd_dec);
 }
