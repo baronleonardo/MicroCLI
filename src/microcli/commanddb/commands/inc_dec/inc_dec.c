@@ -3,8 +3,8 @@
 #include <stdbool.h>
 #include "../../../../config.h"
 #include "../../../../drivers/drivers.h"
-#include <atoi.h>
-#include <itoa.h>
+#include <stoi.h>
+#include <itos.h>
 
 static inline void on_error();
 
@@ -13,7 +13,7 @@ void cmd_inc(char args[], uint8_t args_len) {
         on_error();
 
     else
-        inc_reg( atoi(&args[0], 1) );
+        inc_reg( stoi(&args[0], 1) );
 }
 
 void cmd_dec(char args[], uint8_t args_len) {
@@ -21,7 +21,7 @@ void cmd_dec(char args[], uint8_t args_len) {
         on_error();
 
     else
-        dec_reg( atoi(&args[0], 1) );
+        dec_reg( stoi(&args[0], 1) );
 }
 
 void on_error() {
@@ -31,16 +31,16 @@ void on_error() {
 void inc_reg(uint8_t reg) {
     char data[CMD_REG_LEN];
     uint8_t data_len = getRegData(reg, data, CMD_REG_LEN);
-    int32_t num = atoi(data, data_len) + 1;
-    data_len = itoa(num, data, data_len);
+    int32_t num = stoi(data, data_len) + 1;
+    data_len = itos(num, data, data_len);
     setRegData(reg, data, data_len);
 }
 
 void dec_reg(uint8_t reg) {
     char data[CMD_REG_LEN];
     uint8_t data_len = getRegData(reg, data, CMD_REG_LEN);
-    int32_t num = atoi(data, data_len) - 1;
-    data_len = itoa(num, data, data_len);
+    int32_t num = stoi(data, data_len) - 1;
+    data_len = itos(num, data, data_len);
     setRegData(reg, data, data_len);
 }
 

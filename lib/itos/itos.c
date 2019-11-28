@@ -1,4 +1,4 @@
-#include "itoa.h"
+#include "itos.h"
 #include <stdbool.h>
 
 void reverse_str(char* str, uint8_t str_len) {
@@ -12,7 +12,7 @@ void reverse_str(char* str, uint8_t str_len) {
     }
 }
 
-uint8_t itoa(int32_t num, char* str, uint8_t str_len) {
+uint8_t itos(int32_t num, char* str, uint8_t str_len) {
 
     // simple optimization
     // if there is only one digit

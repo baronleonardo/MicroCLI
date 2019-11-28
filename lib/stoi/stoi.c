@@ -1,6 +1,6 @@
-#include "atoi.h"
+#include "stoi.h"
 
-int32_t atoi(char* str, uint8_t str_len) {
+int32_t stoi(char* str, uint8_t str_len) {
     // simple optimization
     if(str_len == 1)
         if( (str[0] > '0') && (str[0] < '9') )

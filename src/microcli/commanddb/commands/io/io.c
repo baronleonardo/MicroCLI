@@ -1,7 +1,7 @@
 #include "io.h"
 #include "../../../../drivers/drivers.h"
 #include "../reg/reg.h"
-#include <atoi.h>
+#include <stoi.h>
 #include <stdbool.h>
 
 inline void __on_error();
@@ -26,7 +26,7 @@ void cmd_io(char args[], uint8_t args_len) {
         else if( args[iii] == 'l' )
             state = GPIO_STATE_LOW;
         else if( (args[iii] >= '0') && (args[iii] <= '9') )
-            getRegData( atoi(&args[iii], 1), &pin_s, 1 );
+            getRegData( stoi(&args[iii], 1), &pin_s, 1 );
         else if( args[iii] == 'i' )
             mode = GPIO_MODE_INPUT;
         else if( args[iii] == 'o' )
@@ -42,7 +42,7 @@ void cmd_io(char args[], uint8_t args_len) {
     if( (pin_s == (char)0) || (pin_s < '0') || (pin_s > '9') ) 
         __on_error();
 
-    uint8_t pin_num = atoi(&pin_s, 1);
+    uint8_t pin_num = stoi(&pin_s, 1);
     if(mode != -1)
         gpio_setMode(pin_num, mode);
 
@@ -60,7 +60,7 @@ void __print_pin_state(char pin) {
         Comm_write("Pin #", sizeof("Pin #") - 1);
         Comm_writeChar(pin);
         Comm_write(" state: ", sizeof(" state: ") - 1);
-        if( gpio_getState(atoi(&pin, 1)) == GPIO_STATE_HIGH )
+        if( gpio_getState(stoi(&pin, 1)) == GPIO_STATE_HIGH )
             Comm_write("high", sizeof("high") - 1);
         else
             Comm_write("low", sizeof("low") - 1);
