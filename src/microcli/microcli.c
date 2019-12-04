@@ -2,14 +2,14 @@
 #include "../drivers/drivers.h"
 #include "../config.h"
 #include "commanddb/commanddbmanager.h"
-#include "command.h"
+#include "microcli_engine.h"
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
 
 /***************************** Static Variables *****************************/
-char cmd_raw_input[CMD_INPUT_MAX_LEN];
-uint32_t current_input_length = 0;
+static char cmd_raw_input[CMD_INPUT_MAX_LEN];
+static uint32_t current_input_length = 0;
 /****************************************************************************/
 
 /********************************** Macros **********************************/
@@ -19,11 +19,11 @@ uint32_t current_input_length = 0;
 /****************************************************************************/
 
 /************************** Functions declaration **************************/
-inline void __Microcli_sendNewCmdIndicator();
-inline void __Microcli_onOverflowInputLength();
-inline void __Microcli_onLineEndingKeyReceived();
-inline void __Microcli_onEndOfTransmitionKeyReceived();
-inline void __Microcli_onBackspaceKeyReceived();
+inline static void __Microcli_sendNewCmdIndicator();
+inline static void __Microcli_onOverflowInputLength();
+inline static void __Microcli_onLineEndingKeyReceived();
+inline static void __Microcli_onEndOfTransmitionKeyReceived();
+inline static void __Microcli_onBackspaceKeyReceived();
 /***************************************************************************/
 
 void Microcli_init() {

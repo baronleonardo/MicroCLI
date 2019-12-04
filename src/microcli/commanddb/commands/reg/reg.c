@@ -8,12 +8,13 @@ typedef struct Register {
     uint8_t data_len;
 } Register;
 
-Register regs[CMD_REGS_COUNT];
+static Register regs[CMD_REGS_COUNT];
 
-void regSet(char args[], uint8_t args_len) {
+int8_t regSet(char args[], uint8_t args_len) {
     if( (args[0] != '"') && ((args[1] < '0') || (args[1] > '9')) ) {
         Comm_write("Wrong Arguments", sizeof("Wrong Arguments") - 1);
         Comm_writeNewLine();
+        return -1;
     }
 
     // 3 here represent the single/double quotations
@@ -21,12 +22,14 @@ void regSet(char args[], uint8_t args_len) {
     // register number
     uint8_t reg_index = args[1] - '0';
     setRegData(reg_index, &args[2], args_len - 3);
+    return 0;
 }
 
-void regGet(char args[], uint8_t args_len) {
+int8_t regGet(char args[], uint8_t args_len) {
     if( (args[0] != '"') && ((args[1] < '0') || (args[1] > '9')) ) {
         Comm_write("Wrong Arguments", sizeof("Wrong Arguments") - 1);
         Comm_writeNewLine();
+        return -1;
     }
 
     Register* reg = &regs[args[1] - '0'];
@@ -35,6 +38,7 @@ void regGet(char args[], uint8_t args_len) {
     Comm_write(": ", sizeof(": ") - 1);
     Comm_write(reg->data, reg->data_len);
     Comm_writeNewLine();
+    return 0;
 }
 
 bool setRegData(uint8_t reg, char* data, uint8_t data_len) {

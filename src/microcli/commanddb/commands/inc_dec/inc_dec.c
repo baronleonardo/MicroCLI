@@ -8,20 +8,24 @@
 
 static inline void on_error();
 
-void cmd_inc(char args[], uint8_t args_len) {
-    if(args_len != 1)
+int8_t cmd_inc(char args[], uint8_t args_len) {
+    if(args_len != 1) {
         on_error();
-
-    else
+        return -1;
+    } else {
         inc_reg( stoi(&args[0], 1) );
+        return 0;
+    }
 }
 
-void cmd_dec(char args[], uint8_t args_len) {
-    if(args_len != 1)
+int8_t cmd_dec(char args[], uint8_t args_len) {
+    if(args_len != 1) {
         on_error();
-
-    else
+        return -1;
+    } else {
         dec_reg( stoi(&args[0], 1) );
+        return 0;
+    }
 }
 
 void on_error() {

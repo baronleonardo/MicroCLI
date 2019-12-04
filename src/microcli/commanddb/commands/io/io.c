@@ -4,16 +4,18 @@
 #include <stoi.h>
 #include <stdbool.h>
 
-inline void __on_error();
-inline void __print_pin_state(char pin_s);
+inline static void __on_error();
+inline static bool  __print_pin_state(char pin_s);
 
-void cmd_io(char args[], uint8_t args_len) {
+int8_t cmd_io(char args[], uint8_t args_len) {
     Comm_write(args, args_len);
     Comm_writeNewLine();
     // if no arguments but a register, then we need to read pin state
     if(args_len == 1) {
-        __print_pin_state(args[0]);
-        return;
+        if(__print_pin_state(args[0]))
+            return 0;
+        else
+            return -1;
     }
 
     char pin_s       = (char)0;
@@ -35,12 +37,14 @@ void cmd_io(char args[], uint8_t args_len) {
             mode = GPIO_MODE_INPUTPULLUP;
         else {
             __on_error();
-            return;
+            return -1;
         }
     }
 
-    if( (pin_s == (char)0) || (pin_s < '0') || (pin_s > '9') ) 
+    if( (pin_s == (char)0) || (pin_s < '0') || (pin_s > '9') ) {
         __on_error();
+        return -1;
+    }
 
     uint8_t pin_num = stoi(&pin_s, 1);
     if(mode != -1)
@@ -48,6 +52,8 @@ void cmd_io(char args[], uint8_t args_len) {
 
     if( (mode == -1) || (mode == GPIO_MODE_OUTPUT) )
         gpio_setState(pin_num, state);
+
+    return 0;
 }
 
 void __on_error() {
@@ -55,7 +61,7 @@ void __on_error() {
     Comm_writeNewLine();
 }
 
-void __print_pin_state(char pin) {
+bool __print_pin_state(char pin) {
     if( (pin >= '0') && (pin <= '9') ) {
         Comm_write("Pin #", sizeof("Pin #") - 1);
         Comm_writeChar(pin);
@@ -65,7 +71,9 @@ void __print_pin_state(char pin) {
         else
             Comm_write("low", sizeof("low") - 1);
         Comm_writeNewLine();
+        return true;
+    } else { 
+        __on_error();
+        return false;
     }
-
-    else __on_error();
 }

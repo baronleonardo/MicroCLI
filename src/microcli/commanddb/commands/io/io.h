@@ -14,6 +14,6 @@
  *  -p: input pullup (state) (optional)
  * reg: pin number           (must)
  */
-void cmd_io(char args[], uint8_t args_len);
+int8_t cmd_io(char args[], uint8_t args_len);
 
 #endif // IO_H

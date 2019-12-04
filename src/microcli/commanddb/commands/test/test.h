@@ -3,6 +3,6 @@
 
 #include <stdint.h>
 
-void cmd_test(char args[], uint8_t args_len);
+int8_t cmd_test(char args[], uint8_t args_len);
 
 #endif // TEST_H

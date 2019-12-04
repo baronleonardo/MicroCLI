@@ -21,5 +21,6 @@
 #define CMD_NAME_LEN                11
 #define CMD_REG_LEN                 10
 #define CMD_REGS_COUNT              10
+#define CMD_CHAINED_STACK_LEN       5
 
 #endif // CONFIG_H
