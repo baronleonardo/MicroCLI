@@ -34,6 +34,14 @@ void Microcli_init() {
     // wait for a connection
     while( !Comm_isConnected() )
         Mcu_hookAfterEachCycle();
+
+#ifdef sdcard
+    SdCard_init();
+    if(!SdCard_isInitiated()) {
+        Comm_write("Error initiating SdCard!",
+                   sizeof("Error initiating SdCard!") - 1);
+    }
+#endif // sdcard
 }
 
 void Microcli_mainLoop() {

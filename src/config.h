@@ -23,4 +23,10 @@
 #define CMD_REGS_COUNT              10
 #define CMD_CHAINED_STACK_LEN       5
 
+/******************************* SD Card *******************************/
+// use sdcard module
+#define sdcard
+#define ESP12E_SDCARD_CS_PIN        D8
+#define SDCARD_CS_PIN               ESP12E_SDCARD_CS_PIN
+
 #endif // CONFIG_H

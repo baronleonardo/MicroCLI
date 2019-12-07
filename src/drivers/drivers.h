@@ -6,4 +6,8 @@
 #include "mcu/mcu.h"
 #include "gpio/gpio.h"
 
+#ifdef sdcard
+    #include "sdcard/sdcard.h"
+#endif // sdcard
+
 #endif // DRIVERS_H
