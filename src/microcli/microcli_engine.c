@@ -65,6 +65,7 @@ Command* Command_parse(const char* cmd, uint8_t cmd_len) {
 
     current_cmd = Command_new(cmd_len);
 
+    // TODO: get rid of '\0'
     while(*cmd != '\0') {
         if(*cmd > ' ') {
             start = cmd;

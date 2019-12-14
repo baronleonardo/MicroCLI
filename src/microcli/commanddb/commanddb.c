@@ -7,6 +7,7 @@
 #include "commands/forloop/forloop.h"
 #include "commands/ifcondition/ifcondition.h"
 #include "commands/sdcard_cmds/sdcard_cmds.h"
+#include "commands/file_exec/file_exec.h"
 
 void CommandDB_createDatabase() {
     CommandDB_add("test",   sizeof("test") - 1,   cmd_test);
@@ -21,6 +22,7 @@ void CommandDB_createDatabase() {
     CommandDB_add("cat",    sizeof("cat") - 1,    cmd_cat);
     CommandDB_add("mount",  sizeof("mount") - 1,  cmd_mount);
     CommandDB_add("umount", sizeof("umount") - 1, cmd_umount);
+    CommandDB_add("fexec",  sizeof("fexec" - 1),  file_exec);
 
     CommandDB_addChainCommand("for", sizeof("for") - 1, forloop, COMMAND_DB_MAXITRNUM_INFINITY);
     CommandDB_addChainCommand("if",  sizeof("if") - 1,  cmd_if,  COMMAND_DB_MAXITRNUM_ONE);
