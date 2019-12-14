@@ -6,6 +6,7 @@
 #include "mcu/mcu.h"
 #include "gpio/gpio.h"
 
+#include "../config.h"
 #ifdef sdcard
     #include "sdcard/sdcard.h"
 #endif // sdcard

@@ -13,6 +13,7 @@ extern "C" void SdCard_init() {
 }
 
 extern "C" void SdCard_deinit() {
+    isInitiated = false;
     SD.end();
 }
 
@@ -20,8 +21,16 @@ extern "C" bool SdCard_isInitiated() {
     return isInitiated;
 }
 
-extern "C" File SdCard_open(const char* path) {
-    return SD.open(path);
+extern "C" File* SdCard_open(const char* path) {
+    File* file = new File;
+    *file = SD.open(path);
+
+    if(*file) 
+        return file;
+    else {
+        delete file;
+        return NULL;
+    }
 }
 
 extern "C" bool SdCard_isPathExists(const char* path) {
@@ -42,6 +51,7 @@ extern "C" int32_t SdCard_File_availableDataSize(File* file) {
 
 extern "C" void SdCard_File_close(File* file) {
     file->close();
+    delete file;
 }
 
 extern "C" char SdCard_File_peek(File* file) {
@@ -77,8 +87,16 @@ extern "C" bool SdCard_File_isDirectory(File* file) {
     return file->isDirectory();
 }
 
-extern "C" File SdCard_File_openNextFile(File* file) {
-    return file->openNextFile();
+extern "C" File* SdCard_File_openNextFile(File* file) {
+    File* next_file = new File;
+    *next_file = file->openNextFile();
+
+    if(*next_file)
+        return next_file;
+    else {
+        delete next_file;
+        return NULL;
+    }
 }
 
 extern "C" void SdCard_File_rewindDirector(File* file) {
